@@ -5,17 +5,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Folder to Mermaid</title>
+  <title>Folder to Mermaid and Markdown</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
     }
-    #mermaidCode {
+    .code-container {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .code-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .code-section h2 {
+      margin-bottom: 10px;
+    }
+    .code-section pre {
       white-space: pre-wrap;
       background-color: #f0f0f0;
       padding: 10px;
       border-radius: 5px;
+      flex: 1;
     }
     #progress {
       margin-top: 20px;
@@ -24,7 +38,7 @@
   </style>
 </head>
 <body>
-  <h1>Folder to Mermaid</h1>
+  <h1>Folder to Mermaid and Markdown</h1>
   <form id="uploadForm" enctype="multipart/form-data">
     <input type="file" webkitdirectory directory multiple id="folderInput">
     <div>
@@ -33,13 +47,22 @@
     </div>
     <button type="submit">Upload</button>
   </form>
-  <h2>Generated Mermaid Code:</h2>
-  <pre id="mermaidCode"></pre>
-  <button id="copyButton">Copy Code</button>
   <div id="progress">
     <p>Compressing and uploading files...</p>
     <progress id="progressBar" value="0" max="100"></progress>
     <p id="progressText">0%</p>
+  </div>
+  <div class="code-container">
+    <div class="code-section">
+      <h2>Generated Mermaid Code:</h2>
+      <pre id="mermaidCode"></pre>
+      <button id="copyMermaidButton">Copy Mermaid Code</button>
+    </div>
+    <div class="code-section">
+      <h2>Generated Markdown Code:</h2>
+      <pre id="markdownCode"></pre>
+      <button id="copyMarkdownButton">Copy Markdown Code</button>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
@@ -97,14 +120,17 @@
         });
 
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          const errorDetails = await response.json();
+          throw new Error(`Network response was not ok: ${errorDetails.message}`);
         }
 
         console.log('Response received');
         const result = await response.json();
         console.log('Result:', result);
         const mermaidCode = document.getElementById('mermaidCode');
+        const markdownCode = document.getElementById('markdownCode');
         mermaidCode.textContent = result.mermaidCode;
+        markdownCode.textContent = result.markdownCode;
 
         progressDiv.style.display = 'none';
       } catch (error) {
@@ -113,10 +139,17 @@
       }
     });
 
-    document.getElementById('copyButton').addEventListener('click', () => {
+    document.getElementById('copyMermaidButton').addEventListener('click', () => {
       const mermaidCode = document.getElementById('mermaidCode');
       navigator.clipboard.writeText(mermaidCode.textContent).then(() => {
         alert('Mermaid code copied to clipboard!');
+      });
+    });
+
+    document.getElementById('copyMarkdownButton').addEventListener('click', () => {
+      const markdownCode = document.getElementById('markdownCode');
+      navigator.clipboard.writeText(markdownCode.textContent).then(() => {
+        alert('Markdown code copied to clipboard!');
       });
     });
   </script>
