@@ -1,0 +1,124 @@
+<!-- file path: /public/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Folder to Mermaid</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #mermaidCode {
+      white-space: pre-wrap;
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    #progress {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Folder to Mermaid</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <input type="file" webkitdirectory directory multiple id="folderInput">
+    <div>
+      <label><input type="checkbox" id="basicFiles" checked> Include .cs, .unity, .unitypackages, .json</label><br>
+      <label><input type="checkbox" id="imageFiles"> Include .png, .svg</label>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+  <h2>Generated Mermaid Code:</h2>
+  <pre id="mermaidCode"></pre>
+  <button id="copyButton">Copy Code</button>
+  <div id="progress">
+    <p>Compressing and uploading files...</p>
+    <progress id="progressBar" value="0" max="100"></progress>
+    <p id="progressText">0%</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log('Form submitted');
+
+      const input = document.getElementById('folderInput');
+      const basicFiles = document.getElementById('basicFiles').checked;
+      const imageFiles = document.getElementById('imageFiles').checked;
+      const zip = new JSZip();
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const progressDiv = document.getElementById('progress');
+      
+      progressDiv.style.display = 'block';
+
+      const fileTypes = [];
+      if (basicFiles) {
+        fileTypes.push('.cs', '.unity', '.unitypackages', '.json');
+      }
+      if (imageFiles) {
+        fileTypes.push('.png', '.svg');
+      }
+
+      for (let i = 0; i < input.files.length; i++) {
+        const file = input.files[i];
+        const relativePath = file.webkitRelativePath || file.name;
+        const extension = relativePath.split('.').pop().toLowerCase();
+        if (fileTypes.includes(`.${extension}`)) {
+          zip.file(relativePath, file);
+        }
+      }
+
+      console.log('Files appended to zip:', input.files.length);
+  
+      try {
+        console.log('Starting compression...');
+        const zipContent = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+          const percent = Math.floor(metadata.percent);
+          progressBar.value = percent;
+          progressText.textContent = `${percent}%`;
+          console.log(`Compression progress: ${percent}%`);
+        });
+        console.log('Compression completed');
+        
+        const formData = new FormData();
+        formData.append('folder', zipContent, 'folder.zip');
+
+        console.log('Uploading zip file...');
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        console.log('Response received');
+        const result = await response.json();
+        console.log('Result:', result);
+        const mermaidCode = document.getElementById('mermaidCode');
+        mermaidCode.textContent = result.mermaidCode;
+
+        progressDiv.style.display = 'none';
+      } catch (error) {
+        console.error('There has been a problem with your fetch operation:', error);
+        progressDiv.style.display = 'none';
+      }
+    });
+
+    document.getElementById('copyButton').addEventListener('click', () => {
+      const mermaidCode = document.getElementById('mermaidCode');
+      navigator.clipboard.writeText(mermaidCode.textContent).then(() => {
+        alert('Mermaid code copied to clipboard!');
+      });
+    });
+  </script>
+</body>
+</html>

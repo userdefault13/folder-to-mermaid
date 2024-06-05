@@ -1,0 +1,37 @@
+{
+  "name": "portaldefender.aavegotchikit",
+  "version": "1.0.0",
+  "displayName": "Aavegotchi Kit",
+  "description": "Provides a way to get started using Aavegotchis in Unity.",
+  "unity": "2022.3",
+  "author": {
+    "name": "Bruno Mateus",
+    "url": "https://github.com/bmateus/"
+  },
+  "keywords": [
+    "aavegotchi",
+    "web3",
+    "NFT"
+  ],
+  "license": "MIT",
+  "category": "Tools",
+  "dependencies": {
+  },
+  "samples": [
+    {
+        "displayName": "Gotchi Browser",
+        "description": "Example UI to browse through Gotchi's (using sprites in worldspace)",
+        "path": "Examples/GotchiBrowser"
+    },
+    {
+      "displayName": "Wearable Browser",
+      "description": "Example UI to browse through wearables and equip them to Gotchi (using Unity UI Canvas)",
+      "path": "Examples/WearableBrowser"
+    },
+    {
+        "displayName": "Nethereum Tests",
+        "description": "Test interacting with the blockchain using Nethereum",
+        "path": "Examples/NethereumTest"
+    }
+  ]
+}
